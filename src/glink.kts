@@ -4,28 +4,27 @@
 import java.util.concurrent.TimeUnit
 import java.io.IOException
 import java.io.File
+import java.util.regex.Pattern
 
 println("----- Running Glink -----")
-val allowed = listOf<String>("A", "M")
 val unrefinedGitStatusOutput = "git status --porcelain".runCommand()
+
 val refined = unrefinedGitStatusOutput!!
         .lines()
         .toMutableList()
         .map { it.trim() }
-        .filter { it.length > 2 && allowed.contains(it.first().toString()) }
+        .filter {
+            it.length > 2 && it.split(Pattern.compile("\\s+")).first()
+                    .contains(Pattern.compile("[AM]").toRegex()) }
         .map { it.substring(1).trim() }
 
 var ktlintOutput = ""
 
 for (r in refined) {
     if (r.takeLast(3).equals(".kt", true)) {
-        ktlintOutput += "ktlint $r".runCommand()
+        print("ktlint $r".runCommand())
     }
 }
-
-print(ktlintOutput)
-
-
 
 
 fun String.runCommand(workingDir: File = File(".")): String? {
